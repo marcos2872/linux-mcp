@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
@@ -12,7 +12,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            allowed_commands: crate::tools::ALLOWED_COMMANDS
+            allowed_commands: crate::tools::allowed_commands::ALLOWED_COMMANDS
                 .iter()
                 .map(|&s| s.to_string())
                 .collect(),

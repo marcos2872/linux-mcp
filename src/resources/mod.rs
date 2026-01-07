@@ -149,11 +149,11 @@ pub async fn read_resource(uri: &str) -> Result<String> {
             ))
         }
         "linux://mcp/capabilities" => {
-            let mut allowed = crate::tools::ALLOWED_COMMANDS.to_vec();
+            let mut allowed = crate::tools::allowed_commands::ALLOWED_COMMANDS.to_vec();
             allowed.sort();
 
             Ok(format!(
-               "# Linux MCP Server Security & Capabilities\n\n\
+                "# Linux MCP Server Security & Capabilities\n\n\
                 ## 🛡️ Security Rules\n\
                 This server operates in a secure mode. Arbitrary command execution is BLOCKED.\n\n\
                 ### 1. Allowed Commands\n\

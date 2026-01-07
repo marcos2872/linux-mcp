@@ -8,6 +8,7 @@ use std::process::Command;
 use std::sync::Arc;
 use sysinfo::{Disks, System};
 use tokio::sync::Mutex;
+pub mod allowed_commands;
 
 /// Estrutura para os argumentos do tool de informações do sistema
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
@@ -144,28 +145,241 @@ pub async fn get_system_info(
 
 /// Lista de comandos permitidos (Allowlist)
 /// Apenas o binário principal é verificado, não os argumentos.
-pub const ALLOWED_COMMANDS: &[&str] = &[
-    // Info do Sistema
-    "ls", "cat", "grep", "find", "ps", "top", "htop", "free", "df", "du", "uname", "hostname", "uptime", "stat",
-    // Logs
-    "journalctl", "dmesg", "tail", "head",
-    // Rede
-    "ip", "ifconfig", "ping", "ss", "netstat", "lsof",
-    // Gerenciamento de Serviços (Requer Polkit/Root geralmente)
-    "systemctl", "service",
-    // Gerenciamento de Pacotes (Requer Polkit/Root)
-    "apt", "apt-get", "dnf", "yum", "pacman", "zypper", "snap", "flatpak",
-    // Outros utilitários seguros
-    "echo", "date", "whoami", "id", "wc", "sort", "uniq",
-];
+// pub const ALLOWED_COMMANDS: &[&str] = &[
+//     // // Info do Sistema
+//     // "ls", "cat", "grep", "find", "ps", "top", "htop", "free", "df", "du", "uname", "hostname", "uptime", "stat",
+//     // // Logs
+//     // "journalctl", "dmesg", "tail", "head",
+//     // // Rede
+//     // "ip", "ifconfig", "ping", "ss", "netstat", "lsof",
+//     // // Gerenciamento de Serviços (Requer Polkit/Root geralmente)
+//     // "systemctl", "service",
+//     // // Gerenciamento de Pacotes (Requer Polkit/Root)
+//     // "apt", "apt-get", "dnf", "yum", "pacman", "zypper", "snap", "flatpak",
+//     // // Outros utilitários seguros
+//     // "echo", "date", "whoami", "id", "wc", "sort", "uniq",
+//     // ========== Sistema ==========
+//     "uname",
+//     "hostname",
+//     "uptime",
+//     "date",
+//     "whoami",
+//     "id",
+//     "logname",
+//     "tty",
+//     "locale",
+//     "getconf",
+//     "env",
+//     // ========== Navegação ==========
+//     "ls",
+//     "pwd",
+//     "find",
+//     "locate",
+//     "stat",
+//     "file",
+//     "readlink",
+//     "realpath",
+//     // ========== Operações de Arquivo ==========
+//     "cat",
+//     "cp",
+//     "mv",
+//     "rm",
+//     "touch",
+//     "mkdir",
+//     "rmdir",
+//     "ln",
+//     "chmod",
+//     "chown",
+//     "chgrp",
+//     "umask",
+//     // ========== Processamento de Texto ==========
+//     "grep",
+//     "sed",
+//     "awk",
+//     "head",
+//     "tail",
+//     "wc",
+//     "sort",
+//     "uniq",
+//     "cut",
+//     "paste",
+//     "join",
+//     "tr",
+//     "expand",
+//     "unexpand",
+//     "fold",
+//     "nl",
+//     "comm",
+//     "diff",
+//     "cmp",
+//     "patch",
+//     "ed",
+//     "printf",
+//     "echo",
+//     // ========== Compressão ==========
+//     "tar",
+//     "gzip",
+//     "gunzip",
+//     "bzip2",
+//     "bunzip2",
+//     "xz",
+//     "unxz",
+//     "compress",
+//     "uncompress",
+//     "zcat",
+//     "pax",
+//     // ========== Rede ==========
+//     "ping",
+//     "ip",
+//     "ifconfig",
+//     "hostname",
+//     "ss",
+//     "netstat",
+//     "lsof",
+//     "nslookup",
+//     "dig",
+//     "traceroute",
+//     "curl",
+//     "wget",
+//     "rsync",
+//     // ========== Processos ==========
+//     "ps",
+//     "top",
+//     "htop",
+//     "kill",
+//     "killall",
+//     "jobs",
+//     "bg",
+//     "fg",
+//     "nohup",
+//     "nice",
+//     "renice",
+//     "wait",
+//     "fuser",
+//     "pgrep",
+//     "pkill",
+//     "time",
+//     "timeout",
+//     // ========== Monitoramento de Recursos ==========
+//     "free",
+//     "df",
+//     "du",
+//     "iostat",
+//     "vmstat",
+//     "dmesg",
+//     "iotop",
+//     "nethogs",
+//     // ========== Logs e Sistema ==========
+//     "journalctl",
+//     "dmesg",
+//     "tail",
+//     "head",
+//     "grep",
+//     "logger",
+//     // ========== Gerenciamento de Serviços ==========
+//     "systemctl",
+//     "service",
+//     // ========== Gerenciamento de Pacotes - Debian/Ubuntu ==========
+//     "apt",
+//     "apt-get",
+//     "apt-cache",
+//     "dpkg",
+//     // ========== Gerenciamento de Pacotes - Red Hat/Fedora ==========
+//     "dnf",
+//     "yum",
+//     "rpm",
+//     // ========== Gerenciamento de Pacotes - Arch ==========
+//     "pacman",
+//     // ========== Gerenciamento de Pacotes - openSUSE ==========
+//     "zypper",
+//     // ========== Gerenciamento de Pacotes - Universal ==========
+//     "snap",
+//     "flatpak",
+//     // ========== Desenvolvimento ==========
+//     "gcc",
+//     "cc",
+//     "c99",
+//     "g++",
+//     "make",
+//     "cmake",
+//     "nm",
+//     "strings",
+//     "strip",
+//     "objdump",
+//     "readelf",
+//     "ldd",
+//     "git",
+//     "ctags",
+//     "cflow",
+//     "cxref",
+//     "m4",
+//     "lex",
+//     "yacc",
+//     // ========== Utilitários Diversos ==========
+//     "bc",
+//     "expr",
+//     "test",
+//     "true",
+//     "false",
+//     "sleep",
+//     "basename",
+//     "dirname",
+//     "which",
+//     "whereis",
+//     "man",
+//     "info",
+//     "less",
+//     "more",
+//     "clear",
+//     "tput",
+//     "stty",
+//     "tabs",
+//     "mesg",
+//     "write",
+//     "talk",
+//     "od",
+//     "hexdump",
+//     "xxd",
+//     "watch",
+//     "tee",
+//     // ========== Shell Built-ins ==========
+//     "alias",
+//     "unalias",
+//     "builtin",
+//     "command",
+//     "declare",
+//     "export",
+//     "local",
+//     "read",
+//     "type",
+//     "set",
+//     "shopt",
+//     "getopts",
+//     // ========== Administração de Usuários (Use com cuidado) ==========
+//     "useradd",
+//     "userdel",
+//     "usermod",
+//     "passwd",
+//     "groupadd",
+//     "groupdel",
+//     "groupmod",
+//     "newgrp",
+//     "who",
+//     "users",
+//     "w",
+//     "last",
+//     "lastb",
+//     "finger",
+// ];
 
 /// Verifica se o comando rm é seguro
 fn is_safe_rm(command_line: &str) -> bool {
     // Separa os argumentos
     let parts: Vec<&str> = command_line.trim().split_whitespace().collect();
-    
+
     // Ignora o binário "rm" e flags
-    let targets: Vec<&str> = parts.iter()
+    let targets: Vec<&str> = parts
+        .iter()
         .skip(1) // Pula "rm"
         .filter(|arg| !arg.starts_with('-')) // Remove flags como -rf
         .map(|s| *s)
@@ -188,7 +402,7 @@ fn is_safe_rm(command_line: &str) -> bool {
                       target.starts_with("/var/log/") ||
                       target.contains("/.cache/") || // Cobre /home/user/.cache e /root/.cache
                       target.contains("/.local/share/Trash/");
-        
+
         if !is_safe {
             return false;
         }
@@ -206,12 +420,12 @@ fn is_command_allowed(command_line: &str, allowed_list: &[String]) -> bool {
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or(*cmd);
-        
+
         // Exceção especial para o rm
         if cmd_name == "rm" {
             return is_safe_rm(command_line);
         }
-        
+
         return allowed_list.iter().any(|s| s == cmd_name);
     }
     false
@@ -245,7 +459,9 @@ pub async fn execute_command(
         &config.log_path,
         &args.command,
         "ALLOWED",
-        args.use_polkit.map(|b| if b { Some("polkit") } else { Some("normal") }).unwrap_or(Some("normal")),
+        args.use_polkit
+            .map(|b| if b { Some("polkit") } else { Some("normal") })
+            .unwrap_or(Some("normal")),
     );
 
     let result = if args.use_polkit.unwrap_or(false) {
@@ -371,21 +587,17 @@ mod tests {
 
     #[test]
     fn test_is_command_allowed() {
-        let allowed = vec![
-            "ls".to_string(),
-            "grep".to_string(),
-            "apt".to_string(),
-        ];
+        let allowed = vec!["ls".to_string(), "grep".to_string(), "apt".to_string()];
 
         // Allowed commands
         assert!(is_command_allowed("ls -la", &allowed));
         assert!(is_command_allowed("grep 'foo' bar.txt", &allowed));
         assert!(is_command_allowed("apt update", &allowed));
-        // Note: "/usr/bin/ls" check depends on how we strip paths. 
+        // Note: "/usr/bin/ls" check depends on how we strip paths.
         // Logic: std::path::Path::new("/usr/bin/ls").file_name() -> "ls".
         // So it should match if "ls" is in allowed.
-        assert!(is_command_allowed("/usr/bin/ls", &allowed)); 
-        
+        assert!(is_command_allowed("/usr/bin/ls", &allowed));
+
         // Blocked commands
         assert!(!is_command_allowed("rm -rf /", &allowed)); // rm is special but here mocked list doesn't matter for rm logic as rm logic is hardcoded inside is_command_allowed calling is_safe_rm
         assert!(!is_command_allowed("chmod 777 file", &allowed));

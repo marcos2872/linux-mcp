@@ -2,9 +2,13 @@ use anyhow::{Context, Result};
 use chrono::Local;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::path::Path;
 
-pub fn log_command(log_file: &str, command: &str, status: &str, details: Option<&str>) -> Result<()> {
+pub fn log_command(
+    log_file: &str,
+    command: &str,
+    status: &str,
+    details: Option<&str>,
+) -> Result<()> {
     let config_dir = crate::config::get_config_dir()?;
     let log_path = config_dir.join(log_file);
 
