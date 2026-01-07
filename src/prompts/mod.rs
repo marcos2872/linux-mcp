@@ -13,6 +13,7 @@ pub fn list_prompts() -> Vec<Prompt> {
             ),
             arguments: None,
             icons: None,
+            meta: None,
         },
         Prompt {
             name: "security_audit".to_string(),
@@ -20,6 +21,7 @@ pub fn list_prompts() -> Vec<Prompt> {
             description: Some("Realiza uma auditoria básica de segurança do sistema".to_string()),
             arguments: None,
             icons: None,
+            meta: None,
         },
         Prompt {
             name: "service_management".to_string(),
@@ -27,6 +29,7 @@ pub fn list_prompts() -> Vec<Prompt> {
             description: Some("Gerenciamento de serviços do sistema".to_string()),
             arguments: None,
             icons: None,
+            meta: None,
         },
         Prompt {
             name: "log_analysis".to_string(),
@@ -34,6 +37,7 @@ pub fn list_prompts() -> Vec<Prompt> {
             description: Some("Análise de logs do sistema com filtros e busca".to_string()),
             arguments: None,
             icons: None,
+            meta: None,
         },
         Prompt {
             name: "disk_cleanup".to_string(),
@@ -41,6 +45,7 @@ pub fn list_prompts() -> Vec<Prompt> {
             description: Some("Identificação e limpeza segura de espaço em disco".to_string()),
             arguments: None,
             icons: None,
+            meta: None,
         },
     ]
 }

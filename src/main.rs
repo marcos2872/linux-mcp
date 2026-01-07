@@ -5,6 +5,7 @@ mod resources;
 mod tools;
 
 use anyhow::Result;
+use config::Config;
 use rmcp::handler::server::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::*;
@@ -14,7 +15,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::Mutex;
-use config::Config;
 
 /// Servidor MCP Linux
 #[derive(Clone)]
@@ -104,6 +104,7 @@ impl ServerHandler for LinuxMcpServer {
         Ok(ListResourcesResult {
             resources: resources::list_resources(),
             next_cursor: None,
+            meta: None,
         })
     }
 
@@ -138,6 +139,7 @@ impl ServerHandler for LinuxMcpServer {
         Ok(ListPromptsResult {
             prompts: prompts::list_prompts(),
             next_cursor: None,
+            meta: None,
         })
     }
 
@@ -185,6 +187,5 @@ async fn main() -> Result<()> {
 
     // Aguardar até o servidor terminar
     service.waiting().await?;
-
     Ok(())
 }
